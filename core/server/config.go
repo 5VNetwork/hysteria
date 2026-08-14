@@ -28,6 +28,7 @@ type Config struct {
 	TLSConfig             TLSConfig
 	QUICConfig            QUICConfig
 	Conn                  net.PacketConn
+	StatelessResetKey     *quic.StatelessResetKey
 	Cleanup               io.Closer
 	RequestHook           RequestHook
 	Outbound              Outbound
@@ -115,10 +116,11 @@ func (c *Config) fill() error {
 
 // TLSConfig contains the TLS configuration fields that we want to expose to the user.
 type TLSConfig struct {
-	Certificates             []tls.Certificate
-	GetCertificate           func(info *tls.ClientHelloInfo) (*tls.Certificate, error)
-	ClientCAs                *x509.CertPool
-	EncryptedClientHelloKeys []tls.EncryptedClientHelloKey
+	Certificates   []tls.Certificate
+	GetCertificate func(info *tls.ClientHelloInfo) (*tls.Certificate, error)
+	ClientCAs      *x509.CertPool
+	ECHKeys        []tls.EncryptedClientHelloKey
+	GetECHKeys     func(info *tls.ClientHelloInfo) ([]tls.EncryptedClientHelloKey, error)
 }
 
 // QUICConfig contains the QUIC configuration fields that we want to expose to the user.
@@ -130,6 +132,7 @@ type QUICConfig struct {
 	MaxIdleTimeout                 time.Duration
 	MaxIncomingStreams             int64
 	DisablePathMTUDiscovery        bool // The server may still override this to true on unsupported platforms.
+	DisableGSO                     bool
 }
 
 type CongestionConfig struct {
@@ -213,8 +216,9 @@ func (c *defaultUDPConn) WriteTo(b []byte, addr string) (int, error) {
 
 // BandwidthConfig describes the maximum bandwidth that the server can use, in bytes per second.
 type BandwidthConfig struct {
-	MaxTx uint64
-	MaxRx uint64
+	MaxTx                   uint64
+	MaxRx                   uint64
+	DisableLossCompensation bool
 }
 
 // Authenticator is an interface that provides authentication logic.

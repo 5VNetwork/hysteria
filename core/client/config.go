@@ -103,12 +103,12 @@ func (f *udpConnFactory) New(addr net.Addr) (net.PacketConn, error) {
 
 // TLSConfig contains the TLS configuration fields that we want to expose to the user.
 type TLSConfig struct {
-	ServerName                     string
-	InsecureSkipVerify             bool
-	VerifyPeerCertificate          func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error
-	RootCAs                        *x509.CertPool
-	GetClientCertificate           func(*tls.CertificateRequestInfo) (*tls.Certificate, error)
-	EncryptedClientHelloConfigList []byte
+	ServerName            string
+	InsecureSkipVerify    bool
+	VerifyPeerCertificate func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error
+	RootCAs               *x509.CertPool
+	GetClientCertificate  func(*tls.CertificateRequestInfo) (*tls.Certificate, error)
+	ECHConfigList         []byte
 }
 
 // QUICConfig contains the QUIC configuration fields that we want to expose to the user.
@@ -120,6 +120,8 @@ type QUICConfig struct {
 	MaxIdleTimeout                 time.Duration
 	KeepAlivePeriod                time.Duration
 	DisablePathMTUDiscovery        bool // The server may still override this to true on unsupported platforms.
+	DisableGSO                     bool
+	DisableChromeParrot            bool // Chrome QUIC fingerprint parroting is on by default.
 }
 
 type CongestionConfig struct {
@@ -129,6 +131,7 @@ type CongestionConfig struct {
 
 // BandwidthConfig describes the maximum bandwidth that the server can use, in bytes per second.
 type BandwidthConfig struct {
-	MaxTx uint64
-	MaxRx uint64
+	MaxTx                   uint64
+	MaxRx                   uint64
+	DisableLossCompensation bool
 }
