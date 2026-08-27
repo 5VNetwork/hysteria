@@ -295,6 +295,10 @@ func (c *tcpConn) Close() error {
 	return c.Orig.Close()
 }
 
+func (c *tcpConn) CloseWrite() error {
+	return c.Orig.CloseWrite()
+}
+
 func (c *tcpConn) LocalAddr() net.Addr {
 	return c.PseudoLocalAddr
 }
